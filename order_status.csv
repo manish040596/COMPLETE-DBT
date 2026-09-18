@@ -1,0 +1,11 @@
+STATUS_CODE,STATUS_NAME
+P,Pending
+A,Approved
+R,Rejected
+S,Shipped
+C,Cancelled
+D,Delivered
+RT,Returned
+H,On Hold
+F,Failed
+I,In Progress

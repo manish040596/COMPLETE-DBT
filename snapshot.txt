@@ -1,0 +1,122 @@
+----snapshot practical
+
+
+CREATE OR REPLACE TABLE emp_test2
+(
+EMP_ID NUMBER,
+EMP_NAME STRING,
+DEPARTMENT STRING,
+SALARY NUMBER,
+UPDATED_AT TIMESTAMP
+);
+
+
+INSERT INTO emp_test2 VALUES
+(101,'John','IT',50000,CURRENT_TIMESTAMP()),
+(102,'David','HR',60000,CURRENT_TIMESTAMP()),
+(103,'Mike','Sales',70000,CURRENT_TIMESTAMP());
+
+
+
+Step 2 - Snapshot SQL
+
+Create - snapshots/
+
+employee_snapshot.sql
+
+
+{% snapshot employee_snapshot %}
+
+{{
+config(
+
+target_schema='SNAPSHOT',
+
+unique_key='EMP_ID',
+
+strategy='timestamp',
+
+updated_at='UPDATED_AT'
+
+)
+
+}}
+
+select *
+
+from emp_test2
+
+{% endsnapshot %}
+
+
+Run Snapshot
+
+dbt snapshot
+
+-------------
+
+UPDATE EMPLOYEE
+
+SET
+
+SALARY=65000,
+
+UPDATED_AT=CURRENT_TIMESTAMP()
+
+WHERE EMP_ID=101;
+
+run
+dbt snapshot
+
+
+----- 
+
+check strategy 
+
+
+CREATE OR REPLACE TABLE EMPLOYEE_CHECK
+(
+    EMP_ID NUMBER,
+    EMP_NAME STRING,
+    DEPARTMENT STRING,
+    SALARY NUMBER
+);
+
+INSERT INTO EMPLOYEE_CHECK
+VALUES
+(101,'John','IT',50000),
+(102,'David','HR',60000),
+(103,'Mike','Sales',70000);
+
+
+
+Create Snapshot
+
+Create snapshots/employee_check_snapshot.sql
+
+{% snapshot employee_check_snapshot %}
+
+{{
+config(
+    unique_key='EMP_ID',
+    strategy='check',
+    check_cols=['DEPARTMENT','SALARY']
+)
+}}
+
+select *
+from {{ source('raw','employee_check') }}
+
+{% endsnapshot %}
+
+
+
+dbt snapshot
+
+
+--------
+
+UPDATE EMPLOYEE_CHECK
+SET SALARY = 65000
+WHERE EMP_ID = 101;
+
